@@ -2,6 +2,8 @@ package com.moz.commoncrawl;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configured;
@@ -14,6 +16,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.jsoup.Jsoup;
@@ -44,17 +47,33 @@ public class WARCAnchorExtractor extends Configured implements Tool {
     }
 
     public int run(String[] args) throws Exception {
+        // s3://commoncrawl/crawl-data/CC-MAIN-2016-07/segments/1454701146196.88/
+        String segmentPath = args[0];
+        // s3://anchorcc/
+        String outputPath = args[1];
+
+        // get the ref of the segment e.g. 14547...
+        Pattern segmPattern = Pattern.compile("segments/(.+)/");
+        Matcher match = segmPattern.matcher(segmentPath);
+        match.find();
+        String segmID = match.group(1);
+
+        outputPath += segmID + ".counts";
+
+        segmentPath += "/warc/*.warc.gz";
+
         Job job = Job.getInstance(getConf(), "WARCAnchorExtractor");
         job.setJarByClass(this.getClass());
         job.setInputFormatClass(WARCInputFormat.class);
-        FileInputFormat.addInputPath(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
-        FileOutputFormat.setCompressOutput(job, true);
+        FileInputFormat.addInputPath(job, new Path(segmentPath));
+        FileOutputFormat.setOutputPath(job, new Path(outputPath));
+        // FileOutputFormat.setCompressOutput(job, true);
         job.setMapperClass(WARCParserMapper.class);
         job.setReducerClass(AnchorReducer.class);
         job.setCombinerClass(AnchorReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
+        job.setOutputFormatClass(TextOutputFormat.class);
         return job.waitForCompletion(true) ? 0 : 1;
     }
 
@@ -72,7 +91,7 @@ public class WARCAnchorExtractor extends Configured implements Tool {
             String recordType = record.getHeader().getRecordType();
             String targetURL = record.getHeader().getTargetURI();
 
-            if (!recordType.equals("response") || targetURL != null) {
+            if (!recordType.equals("response") || targetURL == null) {
                 return;
             }
 
@@ -84,9 +103,11 @@ public class WARCAnchorExtractor extends Configured implements Tool {
                 return;
             }
 
-            // TODO check content type?
-            // String contentType =
-            // response.getHeader(HttpHeaders.CONTENT_TYPE);
+            // check content type?
+            String contentType = response.getHeader("Content-Type");
+            if (contentType!=null && !contentType.contains("html")){
+                return;
+            }
 
             // TODO extract or compute charset?
             String charset = "UTF-8";
@@ -103,6 +124,10 @@ public class WARCAnchorExtractor extends Configured implements Tool {
                             .equalsIgnoreCase(link.attr("rel"));
                     String anchor = link.text();
                     if (StringUtils.isNotBlank(anchor)) {
+                        // lowercase, trim, remove extra whitespace
+                        anchor = anchor.toLowerCase();
+                        anchor = anchor.trim();
+                        anchor = anchor.replaceAll("\\s+", " ");
                         // send to the output
                         context.write(new Text(anchor + "\t" + noFollow), ONE);
                     }
