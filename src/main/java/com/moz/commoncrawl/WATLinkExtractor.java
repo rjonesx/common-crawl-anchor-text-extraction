@@ -1,6 +1,7 @@
 package com.moz.commoncrawl;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.regex.Matcher;
@@ -135,6 +136,11 @@ public class WATLinkExtractor extends Configured implements Tool {
 
                 while (links.hasNext()) {
                     JsonNode link = links.next();
+                    if (!link.has("path"))
+                        continue;
+                    if (!link.has("url"))
+                        continue;
+
                     if (!"A@/href".equals(link.get("path").getTextValue()))
                         continue;
 
@@ -142,16 +148,20 @@ public class WATLinkExtractor extends Configured implements Tool {
                     // must be an absolute link
                     if (!outLink.startsWith("http"))
                         continue;
-                    URL u = new URL(outLink);
-                    // compare domains
-                    String domain2 = PaidLevelDomain.getPLD(u.getHost());
-                    if (!domain2.equalsIgnoreCase(domain)) {
-                        outlinkCount++;
-                        if (outlinkCount == 5) {
-                            context.write(new Text(sourceURL),
-                                    NullWritable.get());
-                            return;
+                    try {
+                        URL u = new URL(outLink);
+                        // compare domains
+                        String domain2 = PaidLevelDomain.getPLD(u.getHost());
+                        if (!domain2.equalsIgnoreCase(domain)) {
+                            outlinkCount++;
+                            if (outlinkCount == 5) {
+                                context.write(new Text(sourceURL),
+                                        NullWritable.get());
+                                return;
+                            }
                         }
+                    } catch (MalformedURLException mue) {
+                        continue;
                     }
                 }
             } catch (Exception e) {
