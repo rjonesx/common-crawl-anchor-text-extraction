@@ -15,7 +15,6 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
@@ -75,19 +74,6 @@ public class WATAnchorExtractor extends Configured implements Tool {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
         return job.waitForCompletion(true) ? 0 : 1;
-    }
-
-    public static class AnchorReducer
-            extends Reducer<Text, IntWritable, Text, IntWritable> {
-        @Override
-        public void reduce(Text word, Iterable<IntWritable> counts,
-                Context context) throws IOException, InterruptedException {
-            int sum = 0;
-            for (IntWritable count : counts) {
-                sum += count.get();
-            }
-            context.write(word, new IntWritable(sum));
-        }
     }
 
     public static class WATParserMapper
@@ -159,7 +145,7 @@ public class WATAnchorExtractor extends Configured implements Tool {
                         continue;
                     if (!link.has("url"))
                         continue;
-                    
+
                     if (!"A@/href".equals(link.get("path").getTextValue()))
                         continue;
                     String outLink = link.get("url").getTextValue();

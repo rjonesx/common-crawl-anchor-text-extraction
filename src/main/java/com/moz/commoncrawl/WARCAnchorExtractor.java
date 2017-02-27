@@ -13,7 +13,6 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
@@ -105,7 +104,7 @@ public class WARCAnchorExtractor extends Configured implements Tool {
 
             // check content type?
             String contentType = response.getHeader("Content-Type");
-            if (contentType!=null && !contentType.contains("html")){
+            if (contentType != null && !contentType.contains("html")) {
                 return;
             }
 
@@ -138,20 +137,6 @@ public class WARCAnchorExtractor extends Configured implements Tool {
                 LOG.error(errorMessage, e);
                 return;
             }
-        }
-
-    }
-
-    public static class AnchorReducer
-            extends Reducer<Text, IntWritable, Text, IntWritable> {
-        @Override
-        public void reduce(Text word, Iterable<IntWritable> counts,
-                Context context) throws IOException, InterruptedException {
-            int sum = 0;
-            for (IntWritable count : counts) {
-                sum += count.get();
-            }
-            context.write(word, new IntWritable(sum));
         }
     }
 }
