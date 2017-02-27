@@ -37,8 +37,7 @@ while [ "$lastSegment" != "" ]; do
      then 
        hadoop jar ~/anchor-extractor-1.0-SNAPSHOT.jar com.moz.commoncrawl.WARCAnchorExtractor "$lastSegment" s3n://anchorcc/anchor-counts
      else 
-       echo "Job not set for mode != anchor "
-       exit -1;
+       hadoop jar ~/anchor-extractor-1.0-SNAPSHOT.jar com.moz.commoncrawl.WATLinkExtractor "$lastSegment" s3n://anchorcc/links
 	fi
 
 	RETVAL=$?
