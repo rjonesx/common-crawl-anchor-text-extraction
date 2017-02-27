@@ -56,7 +56,7 @@ public class WATLinkExtractor extends Configured implements Tool {
         match.find();
         String segmID = match.group(1);
 
-        outputPath += segmID + ".counts";
+        outputPath += segmID;
 
         segmentPath += "/wat/*.wat.gz";
 

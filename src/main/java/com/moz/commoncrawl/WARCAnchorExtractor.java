@@ -49,7 +49,7 @@ public class WARCAnchorExtractor extends Configured implements Tool {
     public int run(String[] args) throws Exception {
         // s3://commoncrawl/crawl-data/CC-MAIN-2016-07/segments/1454701146196.88/
         String segmentPath = args[0];
-        // s3://anchorcc/
+        // s3n://anchorcc/anchors-
         String outputPath = args[1];
 
         // get the ref of the segment e.g. 14547...
@@ -58,7 +58,7 @@ public class WARCAnchorExtractor extends Configured implements Tool {
         match.find();
         String segmID = match.group(1);
 
-        outputPath += segmID + ".counts";
+        outputPath += segmID;
 
         segmentPath += "/warc/*.warc.gz";
 
