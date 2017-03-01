@@ -44,10 +44,10 @@ while [ "$lastSegment" != "" ]; do
 	if [ $RETVAL -ne 0 ] 
 	 then 
 		echo "Segment $lastSegment exited with code $RETVAL"
-		continue
+        echo "$lastSegment" >> ~/failed.$modeval.segments
+     else
+        echo "Segment $lastSegment processed successfully"
 	fi
-
-	echo "Segment $lastSegment processed successfully"
 
 	head -n -1 ~/unprocessed.$modeval.segments > temp.txt
 	mv temp.txt ~/unprocessed.$modeval.segments
