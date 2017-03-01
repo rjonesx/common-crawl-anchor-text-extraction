@@ -26,7 +26,7 @@ public class AnchorReducer
         for (IntWritable count : counts) {
             sum += count.get();
         }
-        if (threshold != -1 && sum > threshold)
+        if (threshold == -1 || sum > threshold)
             context.write(word, new IntWritable(sum));
     }
 }
