@@ -49,9 +49,10 @@ public class LinkAggregator extends Configured implements Tool {
         job.setJarByClass(this.getClass());
         job.setInputFormatClass(TextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
-        FileOutputFormat.setCompressOutput(job, true);
+        job.setNumReduceTasks(numReducers);
         FileInputFormat.addInputPath(job, new Path(inputPath));
         FileOutputFormat.setOutputPath(job, new Path(outputPath));
+        FileOutputFormat.setCompressOutput(job, false);
         job.setReducerClass(LinkReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(NullWritable.class);

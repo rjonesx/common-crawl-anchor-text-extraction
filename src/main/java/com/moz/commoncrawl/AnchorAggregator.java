@@ -35,12 +35,21 @@ public class AnchorAggregator extends Configured implements Tool {
         // s3://anchorcc/anchors-aggregation
         String outputPath = args[1];
 
+        int numReducers = 1;
+        if (args.length == 3) {
+            numReducers = Integer.parseInt(args[2]);
+        }
+
+        LOG.info("Using {} reducers", numReducers);
+
         Job job = Job.getInstance(getConf(), "AnchorAggregator");
         job.setJarByClass(this.getClass());
         job.setInputFormatClass(TextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
         FileInputFormat.addInputPath(job, new Path(inputPath));
         FileOutputFormat.setOutputPath(job, new Path(outputPath));
+        FileOutputFormat.setCompressOutput(job, false);
+        job.setNumReduceTasks(numReducers);
         job.setReducerClass(AnchorReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
