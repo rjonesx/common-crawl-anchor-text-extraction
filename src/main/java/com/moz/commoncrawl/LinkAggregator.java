@@ -25,58 +25,54 @@ import org.slf4j.LoggerFactory;
  **/
 public class LinkAggregator extends Configured implements Tool {
 
-    private static final Logger LOG = LoggerFactory
-            .getLogger(LinkAggregator.class);
+	private static final Logger LOG = LoggerFactory.getLogger(LinkAggregator.class);
 
-    public static void main(String[] args) throws Exception {
-        int res = ToolRunner.run(new LinkAggregator(), args);
-        System.exit(res);
-    }
+	public static void main(String[] args) throws Exception {
+		int res = ToolRunner.run(new LinkAggregator(), args);
+		System.exit(res);
+	}
 
-    public int run(String[] args) throws Exception {
-        // s3://anchorcc/link-/
-        String inputPath = args[0];
+	public int run(String[] args) throws Exception {
+		// s3://anchorcc/link-/
+		String inputPath = args[0];
 
-        // s3://anchorcc/links-2017
-        String outputPath = args[1];
+		// s3://anchorcc/links-2017
+		String outputPath = args[1];
 
-        int numReducers = 1;
-        if (args.length == 3) {
-            numReducers = Integer.parseInt(args[2]);
-        }
+		int numReducers = 1;
+		if (args.length == 3) {
+			numReducers = Integer.parseInt(args[2]);
+		}
 
-        LOG.info("Using {} reducers", numReducers);
+		LOG.info("Using {} reducers", numReducers);
 
-        Job job = Job.getInstance(getConf(), "LinkAggregator");
-        job.setJarByClass(this.getClass());
-        job.setInputFormatClass(TextInputFormat.class);
-        job.setOutputFormatClass(TextOutputFormat.class);
-        job.setMapperClass(LinkMapper.class);
-        job.setNumReduceTasks(numReducers);
-        FileInputFormat.addInputPath(job, new Path(inputPath));
-        FileOutputFormat.setOutputPath(job, new Path(outputPath));
-        FileOutputFormat.setCompressOutput(job, false);
-        job.setReducerClass(LinkReducer.class);
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(NullWritable.class);
-        return job.waitForCompletion(true) ? 0 : 1;
-    }
+		Job job = Job.getInstance(getConf(), "LinkAggregator");
+		job.setJarByClass(this.getClass());
+		job.setInputFormatClass(TextInputFormat.class);
+		job.setOutputFormatClass(TextOutputFormat.class);
+		job.setMapperClass(LinkMapper.class);
+		job.setNumReduceTasks(numReducers);
+		FileInputFormat.addInputPath(job, new Path(inputPath));
+		FileOutputFormat.setOutputPath(job, new Path(outputPath));
+		FileOutputFormat.setCompressOutput(job, false);
+		job.setReducerClass(LinkReducer.class);
+		job.setOutputKeyClass(Text.class);
+		job.setOutputValueClass(NullWritable.class);
+		return job.waitForCompletion(true) ? 0 : 1;
+	}
 
-    static class LinkMapper
-            extends Mapper<LongWritable, Text, Text, NullWritable> {
-        @Override
-        protected void map(LongWritable key, Text value, Context context)
-                throws IOException, InterruptedException {
-            context.write(value, NullWritable.get());
-        }
-    }
+	static class LinkMapper extends Mapper<LongWritable, Text, Text, NullWritable> {
+		@Override
+		protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+			context.write(value, NullWritable.get());
+		}
+	}
 
-    static class LinkReducer
-            extends Reducer<Text, NullWritable, Text, NullWritable> {
-        @Override
-        protected void reduce(Text text, Iterable<NullWritable> vals,
-                Context context) throws IOException, InterruptedException {
-            context.write(text, NullWritable.get());
-        }
-    }
+	static class LinkReducer extends Reducer<Text, NullWritable, Text, NullWritable> {
+		@Override
+		protected void reduce(Text text, Iterable<NullWritable> vals, Context context)
+				throws IOException, InterruptedException {
+			context.write(text, NullWritable.get());
+		}
+	}
 }

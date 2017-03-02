@@ -12,7 +12,7 @@ if [ "$1" = "link" ]; then
 fi
 
 # take the jar from S3
-hadoop fs -copyToLocal s3n://anchorcc/anchor-extractor-1.0-SNAPSHOT.jar ~/anchor-extractor-1.0-SNAPSHOT.jar
+hadoop fs -copyToLocal s3n://anchorcc/anchor-extractor-1.0.jar ~/anchor-extractor-1.0.jar
 
 # take the list of segments from S3 unless there already is one from S3
 hadoop fs -copyToLocal s3n://anchorcc/unprocessed.$modeval.segments ~/unprocessed.$modeval.segments
@@ -35,9 +35,9 @@ while [ "$lastSegment" != "" ]; do
 
 	if [ "$modeval" = "anchor" ]; 
      then 
-       hadoop jar ~/anchor-extractor-1.0-SNAPSHOT.jar com.moz.commoncrawl.WATAnchorExtractor "$lastSegment" s3n://anchorcc/anchors/
+       hadoop jar ~/anchor-extractor-1.0.jar com.moz.commoncrawl.WATAnchorExtractor "$lastSegment" s3n://anchorcc/anchors/
      else 
-       hadoop jar ~/anchor-extractor-1.0-SNAPSHOT.jar com.moz.commoncrawl.WATLinkExtractor "$lastSegment" s3n://anchorcc/links/
+       hadoop jar ~/anchor-extractor-1.0.jar com.moz.commoncrawl.WATLinkExtractor "$lastSegment" s3n://anchorcc/links/
 	fi
 
 	RETVAL=$?
