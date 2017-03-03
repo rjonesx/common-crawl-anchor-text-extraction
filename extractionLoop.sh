@@ -35,7 +35,7 @@ while [ "$lastSegment" != "" ]; do
 
 	if [ "$modeval" = "anchor" ]; 
      then 
-       hadoop jar ~/anchor-extractor-1.0.jar com.moz.commoncrawl.WATAnchorExtractor "$lastSegment" s3n://anchorcc/anchors/
+       hadoop jar ~/anchor-extractor-1.0.jar com.moz.commoncrawl.WATAnchorExtractor -D anchors.track.hosts=true "$lastSegment" s3n://anchorcc/anchors-hosts/
      else 
        hadoop jar ~/anchor-extractor-1.0.jar com.moz.commoncrawl.WATLinkExtractor "$lastSegment" s3n://anchorcc/links/
 	fi

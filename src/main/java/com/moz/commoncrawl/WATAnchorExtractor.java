@@ -81,6 +81,14 @@ public class WATAnchorExtractor extends Configured implements Tool {
 
 		private static final IntWritable ONE = new IntWritable(1);
 
+		private boolean track_hosts = false;
+
+		@Override
+		protected void setup(Mapper<LongWritable, WARCWritable, Text, IntWritable>.Context context)
+				throws IOException, InterruptedException {
+			track_hosts = context.getConfiguration().getBoolean("anchors.track.hosts", false);
+		}
+
 		@Override
 		protected void map(LongWritable key, WARCWritable value, Context context)
 				throws IOException, InterruptedException {
@@ -107,8 +115,9 @@ public class WATAnchorExtractor extends Configured implements Tool {
 			// check that the url matches the pattern
 			URL url = new URL(sourceURL);
 			String path = url.getFile().toLowerCase();
+			String host = url.getHost();
 
-			String domain = PaidLevelDomain.getPLD(url.getHost());
+			String domain = PaidLevelDomain.getPLD(host);
 
 			if (!"response".equalsIgnoreCase(
 					jsonNode.get("Envelope").get("WARC-Header-Metadata").get("WARC-Type").getTextValue())) {
@@ -162,6 +171,11 @@ public class WATAnchorExtractor extends Configured implements Tool {
 					anchorText = anchorText.toLowerCase();
 					anchorText = anchorText.trim();
 					anchorText = anchorText.replaceAll("\\s+", " ");
+
+					if (track_hosts) {
+						anchorText = track_hosts + "\t";
+					}
+
 					context.write(new Text(anchorText), ONE);
 				}
 			} catch (Exception e) {
