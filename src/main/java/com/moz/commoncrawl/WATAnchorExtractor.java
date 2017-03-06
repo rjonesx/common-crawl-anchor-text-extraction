@@ -114,7 +114,6 @@ public class WATAnchorExtractor extends Configured implements Tool {
 
 			// check that the url matches the pattern
 			URL url = new URL(sourceURL);
-			String path = url.getFile().toLowerCase();
 			String host = url.getHost();
 
 			String domain = PaidLevelDomain.getPLD(host);
@@ -173,7 +172,7 @@ public class WATAnchorExtractor extends Configured implements Tool {
 					anchorText = anchorText.replaceAll("\\s+", " ");
 
 					if (track_hosts) {
-						anchorText = track_hosts + "\t";
+						anchorText = host + "\t" + anchorText;
 					}
 
 					context.write(new Text(anchorText), ONE);

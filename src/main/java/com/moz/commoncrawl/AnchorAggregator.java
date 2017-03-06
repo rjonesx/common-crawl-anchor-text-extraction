@@ -9,6 +9,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -54,7 +55,11 @@ public class AnchorAggregator extends Configured implements Tool {
 		FileOutputFormat.setCompressOutput(job, false);
 		job.setMapperClass(AnchorMapper.class);
 		job.setNumReduceTasks(numReducers);
-		job.setReducerClass(AnchorReducer.class);
+		if (getConf().getBoolean("anchors.track.hosts", false)) {
+			job.setReducerClass(HostReducer.class);
+		} else {
+			job.setReducerClass(AnchorReducer.class);
+		}
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(IntWritable.class);
 		return job.waitForCompletion(true) ? 0 : 1;
@@ -68,6 +73,18 @@ public class AnchorAggregator extends Configured implements Tool {
 			int tab = s.lastIndexOf('\t');
 			int count = Integer.parseInt(s.substring(tab + 1));
 			context.write(new Text(s.substring(0, tab)), new IntWritable(count));
+		}
+	}
+
+	// intermediate step : counts an occurrence of host+anchor as 1
+	static class HostReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
+		@Override
+		public void reduce(Text word, Iterable<IntWritable> counts, Context context)
+				throws IOException, InterruptedException {
+			// separate the label from the value
+			String s = word.toString();
+			int tab = s.indexOf('\t');
+			context.write(new Text(s.substring(tab + 1)), new IntWritable(1));
 		}
 	}
 
