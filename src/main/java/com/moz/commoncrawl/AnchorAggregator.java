@@ -56,8 +56,10 @@ public class AnchorAggregator extends Configured implements Tool {
 		job.setMapperClass(AnchorMapper.class);
 		job.setNumReduceTasks(numReducers);
 		if (getConf().getBoolean("anchors.track.hosts", false)) {
+			LOG.info("Using HostReducer");
 			job.setReducerClass(HostReducer.class);
 		} else {
+			LOG.info("Using AnchorReducer");
 			job.setReducerClass(AnchorReducer.class);
 		}
 		job.setOutputKeyClass(Text.class);
