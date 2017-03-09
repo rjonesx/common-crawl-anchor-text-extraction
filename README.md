@@ -37,12 +37,27 @@ The output of the jobs is put in a S3 bucket but this can be replaced with a HDF
 
 The script mentioned above generates one output per CC segment. There are two classes to aggregate the results into a single path, e.g.
 
-`hadoop jar anchor-extractor-1.0.jar com.moz.commoncrawl.AnchorAggregator -D anchors.threshold=5 s3n://anchorcc/anchors/* s3n://anchorcc/2017-anchors 10`
+`hadoop jar anchor-extractor-1.1.jar com.moz.commoncrawl.AnchorAggregator -D anchors.threshold=5 s3n://anchorcc/anchors/* s3n://anchorcc/2017-anchors 10`
 
 where the 3rd argument is the number of reducers to use (i.e. how many subfiles will be produced).
 
 The command for aggregating the link files is
 
-`hadoop jar anchor-extractor-1.0.jar com.moz.commoncrawl.LinkAggregator s3n://anchorcc/links-* s3n://anchorcc/2017-links 10`
+`hadoop jar anchor-extractor-1.1.jar com.moz.commoncrawl.LinkAggregator s3n://anchorcc/links-* s3n://anchorcc/2017-links 10`
 
+## Grouping per hostname
+
+Both the classes AnchorExtractor used in the script and AnchorAggregator take an optional configuration `-D anchors.track.hosts=true`. For AnchorExtractor, it means that the hostname is prepended to the anchor in the output e.g.
+
+```
+firejune.com	tweetbot for ios	3
+```
+
+When passing this config to AnchorAggregator, the reduce step outputs as single occurrence of the anchor e.g.
+
+```
+tweetbot for ios	3
+```
+
+The AnchorAggregator must be ran again, without `anchors.track.hosts` this time, to aggregate the counts and apply the thresholds as explained above. 
 
